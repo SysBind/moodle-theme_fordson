@@ -27,7 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 user_preference_allow_ajax_update('drawer-open-nav', PARAM_ALPHA);
 require_once($CFG->libdir . '/behat/lib.php');
 
-if (isloggedin() && $PAGE->theme->settings->shownavclosed==0) {
+$hasfhsdrawer = isset($PAGE->theme->settings->shownavdrawer) && $PAGE->theme->settings->shownavdrawer == 1;
+if (isloggedin() && $hasfhsdrawer && isset($PAGE->theme->settings->shownavclosed) && $PAGE->theme->settings->shownavclosed == 0) {
     $navdraweropen = (get_user_preferences('drawer-open-nav', 'true') == 'true');
 } else {
     $navdraweropen = false;
@@ -39,32 +40,47 @@ if ($navdraweropen) {
 $bodyattributes = $OUTPUT->body_attributes($extraclasses);
 $blockshtml = $OUTPUT->blocks('side-pre');
 $hasblocks = strpos($blockshtml, 'data-block=') !== false;
+
+$blockshtmla = $OUTPUT->blocks('fp-a');
+$blockshtmlb = $OUTPUT->blocks('fp-b');
+$blockshtmlc = $OUTPUT->blocks('fp-c');
+$checkblocka = strpos($blockshtmla, 'data-block=') !== false;
+$checkblockb = strpos($blockshtmlb, 'data-block=') !== false;
+$checkblockc = strpos($blockshtmlc, 'data-block=') !== false;
+$hasfpblockregion = ($PAGE->theme->settings->blockdisplay == 1) !== false;
+
+$hascourseblocks = false;
+if ($checkblocka || $checkblockb || $checkblockc) {
+    $hascourseblocks = true;
+}
+
 $regionmainsettingsmenu = $OUTPUT->region_main_settings_menu();
+
 $templatecontext = [
-    'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
+    'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID) , "escape" => false]) , 
     'output' => $OUTPUT,
-    'showbacktotop' => $PAGE->theme->settings->showbacktotop==1,
     'sidepreblocks' => $blockshtml,
+    'fpablocks' => $blockshtmla,
+    'fpbblocks' => $blockshtmlb,
+    'fpcblocks' => $blockshtmlc,
     'hasblocks' => $hasblocks,
+    'hascourseblocks' => $hascourseblocks,
+    'hasfpblockregion' => $hasfpblockregion,
     'bodyattributes' => $bodyattributes,
     'navdraweropen' => $navdraweropen,
+    'hasfhsdrawer' => $hasfhsdrawer,
     'regionmainsettingsmenu' => $regionmainsettingsmenu,
     'hasregionmainsettingsmenu' => !empty($regionmainsettingsmenu)
 ];
 
-if ($PAGE->theme->settings->toggledrawermenu==1) {
-fordson_boostnavigation_extend_navigation($PAGE->navigation);
-fordson_local_navigation_extend_navigation($PAGE->navigation);
-} else if($PAGE->theme->settings->toggledrawermenu==3) {
-fordson_boostnavigation_extend_navigation($PAGE->navigation);
-fordson_local_navigation_extend_navigation($PAGE->navigation);
-}
-
-if ($PAGE->theme->settings->showbacktotop==1) {
 $PAGE->requires->jquery();
 $PAGE->requires->js('/theme/fordson/javascript/scrolltotop.js');
+$PAGE->requires->js('/theme/fordson/javascript/scrollspy.js');
+$PAGE->requires->js('/theme/fordson/javascript/tooltipfix.js');
+$PAGE->requires->js('/theme/fordson/javascript/blockslider.js');
+if ($PAGE->theme->settings->preset != 'Spectrum-Achromatic') {
+    $PAGE->requires->js('/theme/fordson/javascript/courseblock.js');
 }
 
 $templatecontext['flatnavigation'] = $PAGE->flatnav;
 echo $OUTPUT->render_from_template('theme_fordson/columns2', $templatecontext);
-

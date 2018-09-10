@@ -14,28 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Admin renderer.
- *
- * @package    theme_noanme
- * @copyright  2016 Frédéric Massart - FMCorz.net
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-namespace theme_fordson\output\core;
 defined('MOODLE_INTERNAL') || die();
 
-use moodle_url;
-
-require_once($CFG->dirroot . '/' . $CFG->admin . '/renderer.php');
-
 /**
- * Admin renderer class.
+ * A login page layout for the boost theme.
  *
- * @package    theme_fordson
- * @copyright  2016 Frédéric Massart - FMCorz.net
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   theme_boost
+ * @copyright 2016 Damyon Wiese
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_renderer extends \theme_boost\output\core\admin_renderer {
-    // Error message when this class is not included, but even if empty it works.
-}
+
+$bodyattributes = $OUTPUT->body_attributes();
+
+$templatecontext = [
+    'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
+    'output' => $OUTPUT,
+    'bodyattributes' => $bodyattributes,
+    'hascustomlogin' => $PAGE->theme->settings->showcustomlogin == 1,
+];
+
+echo $OUTPUT->render_from_template('theme_fordson/login', $templatecontext);
